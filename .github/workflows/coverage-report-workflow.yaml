@@ -6,7 +6,6 @@ on:
     workflows: [ "Code coverage Builder" ]
     types:
       - completed
-
 jobs:
   build:
     permissions:
@@ -14,14 +13,7 @@ jobs:
       pull-requests: write
     name: Run code coverage analysis and reporting
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-java@v2
-        name: Setup Java
-        with:
-          distribution: temurin
-          java-version: 11
-          cache: maven
-  
+    steps: 
       - name: Add coverage to PR
         id: jacoco
         uses: madrapps/jacoco-report@v1.3
