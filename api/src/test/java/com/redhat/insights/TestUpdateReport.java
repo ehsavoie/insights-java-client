@@ -70,9 +70,7 @@ public class TestUpdateReport extends AbstractReportTest {
 
     UpdateReportImpl updateReport = new UpdateReportImpl(blockingQueue, logger);
     updateReport.setIdHash(idHash);
-
     String report = generateReport(updateReport);
-
     Map<?, ?> parsedReport = parseReport(report);
 
     // report should have 3 field - version, idHash and "updated-jars"
