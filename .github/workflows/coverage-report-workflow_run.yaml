@@ -1,9 +1,9 @@
-name: Code coverage Reporter
+name: Code Coverage Reporter
 # This gets called when ./coverage-report-pull-request.yaml has completed. See that file
 # for why this is split into two.
 on:
   workflow_run:
-    workflows: [ "Code coverage Builder" ]
+    workflows: [ "Code Coverage Builder" ]
     types:
       - completed
 jobs:
@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    name: Run code coverage analysis and reporting
+    name: Code Coverage Reporter
     runs-on: ubuntu-latest
     steps: 
       - name: Add coverage to PR
