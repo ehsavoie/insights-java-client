@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
-import java.util.Map;
 
 /** JSON serializer for an {@link InsightsReport} object. */
 public class InsightsReportSerializer extends JsonSerializer<InsightsReport> {
@@ -23,9 +22,7 @@ public class InsightsReportSerializer extends JsonSerializer<InsightsReport> {
     if (!insightsReport.getBasic().isEmpty()) {
       generator.writeObjectField("basic", insightsReport.getBasic());
     }
-    for (Map.Entry<String, InsightsSubreport> entry : insightsReport.getSubreports().entrySet()) {
-      generator.writeObjectField(entry.getKey(), entry.getValue());
-    }
+    generator.writeRaw(insightsReport.getSubModulesReport());
     generator.writeEndObject();
     generator.flush();
   }

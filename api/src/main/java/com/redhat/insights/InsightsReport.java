@@ -2,14 +2,18 @@
 package com.redhat.insights;
 
 import static com.redhat.insights.InsightsErrorCode.ERROR_SERIALIZING_TO_JSON;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -54,9 +58,6 @@ public interface InsightsReport {
         new SimpleModule(
             "SimpleModule", new Version(1, 0, 0, null, "com.redhat.insights", "runtimes-java"));
     simpleModule.addSerializer(InsightsReport.class, getSerializer());
-    for (InsightsSubreport subreport : getSubreports().values()) {
-      simpleModule.addSerializer(subreport.getClass(), subreport.getSerializer());
-    }
     mapper.registerModule(simpleModule);
 
     StringWriter writer = new StringWriter();
@@ -66,5 +67,39 @@ public interface InsightsReport {
       throw new InsightsException(ERROR_SERIALIZING_TO_JSON, "JSON serialization exception", e);
     }
     return writer.toString();
+  }
+
+  /**
+   * Serializes this report to JSON for transport
+   *
+   * @return JSON serialized report
+   */
+  default String getSubModulesReport() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+
+    SimpleModule simpleModule =
+        new SimpleModule(
+            "SimpleModule", new Version(1, 0, 0, null, "com.redhat.insights", "runtimes-java"));
+    for (InsightsSubreport subreport : getSubreports().values()) {
+      simpleModule.addSerializer(subreport.getClass(), subreport.getSerializer());
+    }
+    mapper.registerModule(simpleModule);
+
+    try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+        JsonGenerator generator = mapper.writerWithDefaultPrettyPrinter().createGenerator(out)) {
+      generator.writeStartObject();
+      for (Map.Entry<String, InsightsSubreport> entry : getSubreports().entrySet()) {
+        generator.writeObjectField(entry.getKey(), entry.getValue());
+      }
+      generator.writeEndObject();
+      generator.flush();
+      byte[] report = out.toByteArray();
+      return report.length > 3
+          ? ',' + new String(Arrays.copyOfRange(report, 1, report.length - 1), UTF_8)
+          : "";
+    } catch (IOException e) {
+      throw new InsightsException(ERROR_SERIALIZING_TO_JSON, "JSON serialization exception", e);
+    }
   }
 }
